@@ -16,7 +16,7 @@ module.exports.bchaddrSlp = require('bchaddrjs-slp')
 
 /* bech32 */
 
-module.exports.bech32 = require('bech32')
+module.exports.bech32 = require('bech32').bech32
 
 /* biginteger */
 
@@ -208,4 +208,23 @@ module.exports.solanaUtil = {
         const pubKey = edHd.getPublicKey(key);
         return { key, pubKey, chainCode };
     },
+}
+
+// Bip86 source code
+const ecurve = require('ecurve')
+const secp256k1 = ecurve.getCurveByName('secp256k1')
+const schnorr = require('bip-schnorr')
+const bech32 = require('bech32').bech32
+const bech32m = require('bech32').bech32m
+
+const getP2TRAddress = (pubkey, testnet = false) => {
+  const pubKey = ecurve.Point.decodeFrom(secp256k1, pubkey)
+  const taprootPubkey = schnorr.taproot.taprootConstruct(pubKey)
+  const words = bech32.toWords(taprootPubkey)
+  words.unshift(1)
+  return bech32m.encode(testnet ? 'tb' : 'bc', words)
+}
+
+module.exports.BIP86 = {
+    getP2TRAddress
 }
